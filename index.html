@@ -96,7 +96,7 @@
 
         function updateStrength(password) {
             let strengthText = document.getElementById("strengthText");
-            let progressBar = document.getElementById("progressBar"); // Add this line
+            let progressBar = document.getElementById("progressBar"); 
             let score = 0;
             if (password.length >= 8) score++;
             if (/[A-Z]/.test(password)) score++;
@@ -105,7 +105,7 @@
             if (/[^A-Za-z0-9]/.test(password)) score++;
 
             let strength = "Very Weak";
-            let value = 0; // Add this line
+            let value = 0; 
 
             if (score >= 5 && password.length >= 12) {
                 strength = "Very Strong";
@@ -124,7 +124,7 @@
             }
 
             strengthText.textContent = "Strength: " + strength;
-            progressBar.value = value; // Add this line
+            progressBar.value = value; 
         }
 
         function updateCharCount(password) {
@@ -187,7 +187,7 @@
             updateStrength(password);
             updateCharCount(password);
             updateCrackTime(password);
-            updateContainsInfo(password); // Add this line
+            updateContainsInfo(password); 
         });
 
         // Also call on page load:
@@ -196,7 +196,7 @@
             updateStrength("");
             updateCharCount("");
             updateCrackTime("");
-            updateContainsInfo(""); // Add this line
+            updateContainsInfo(""); 
         };
     </script>
 </body>
