@@ -16,7 +16,7 @@
             max-width: 400px;
             margin: auto;
             padding: 20px;
-            padding-bottom: 70px; /* Increased to make room for suggestions */
+            padding-bottom: 70px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             position: relative;
@@ -134,7 +134,7 @@
 
         function updateCrackTime(password) {
             let crackTimeElem = document.getElementById("crackTime");
-            // Simple estimation: 10000 guesses/sec, 4 types of chars
+            
             let charset = 0;
             if (/[a-z]/.test(password)) charset += 26;
             if (/[A-Z]/.test(password)) charset += 26;
