@@ -16,7 +16,7 @@
             max-width: 400px;
             margin: auto;
             padding: 20px;
-            padding-bottom: 70px;
+            padding-bottom: 70px; 
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             position: relative;
@@ -28,22 +28,65 @@
             border: none;
             border-radius: 5px;
             font-size: 16px;
+            transition: box-shadow 0.3s;
         }
-        progress {
+        #progressBarContainer {
             width: 100%;
             height: 10px;
-        }
-        p {
-            margin: 8px 0;
-        }
-        .suggestions-container {
-            position: static;
-            text-align: left;
-            font-size: 14px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px;
+            background: #eee;
             border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        #progressBar {
+            height: 100%;
+            width: 0%;
+            background: #43a047;
+            transition: width 0.5s, background 0.5s;
+            box-shadow: 0 0 0px 0px #43a047;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        .glow {
+            box-shadow: 0 0 16px 4px #43a047;
+        }
+        /* Suggestions pop-in animation and alignment */
+        .suggestions-container {
+            text-align: left;
             margin-top: 16px;
+        }
+        #suggestions {
+            margin: 0;
+            padding: 0;
+        }
+        #suggestions ul {
+            margin-top: 4px;
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+        #suggestions li {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: popIn 0.4s forwards;
+            font-size: 15px;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        #suggestions li:nth-child(1) { animation-delay: 0.05s; }
+        #suggestions li:nth-child(2) { animation-delay: 0.1s; }
+        #suggestions li:nth-child(3) { animation-delay: 0.15s; }
+        #suggestions li:nth-child(4) { animation-delay: 0.2s; }
+        @keyframes popIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #strengthText {
+            transition: color 0.5s, transform 0.3s;
         }
     </style>
 </head>
@@ -55,7 +98,9 @@
             <input type="checkbox" id="showPassword"> Show Password
         </label>
         <p id="strengthText">Strength: </p>
-        <progress id="progressBar" max="100" value="0"></progress>
+        <div id="progressBarContainer">
+            <div id="progressBar"></div>
+        </div>
         <p id="crackTime">Estimated Crack Time:</p>
         <p id="charCount">Characters used: 0</p>
         <p id="containsInfo"></p>
@@ -87,16 +132,21 @@
             });
 
             let suggestionsElem = document.getElementById("suggestions");
-            suggestionsElem.innerHTML = "Suggestions:<ul style='margin-top:4px; padding-left: 12px;'>";
-            filteredSuggestions.forEach(s => {
-                suggestionsElem.innerHTML += `<li>${s}</li>`;
-            });
-            suggestionsElem.innerHTML += "</ul>";
+            if (filteredSuggestions.length > 0) {
+                suggestionsElem.innerHTML = "Suggestions:<ul>";
+                filteredSuggestions.forEach(s => {
+                    suggestionsElem.innerHTML += `<li>${s}</li>`;
+                });
+                suggestionsElem.innerHTML += "</ul>";
+            } else {
+                suggestionsElem.innerHTML = "";
+            }
         }
 
         function updateStrength(password) {
             let strengthText = document.getElementById("strengthText");
             let progressBar = document.getElementById("progressBar"); 
+            let input = document.getElementById("passwordInput");
             let score = 0;
             if (password.length >= 8) score++;
             if (/[A-Z]/.test(password)) score++;
@@ -105,7 +155,7 @@
             if (/[^A-Za-z0-9]/.test(password)) score++;
 
             let strength = "Very Weak";
-            let value = 0; 
+            let value = 0;
 
             if (score >= 5 && password.length >= 12) {
                 strength = "Very Strong";
@@ -123,8 +173,38 @@
                 value = 20;
             }
 
+            let color = "#e53935";
+            let textColor = "#e53935";
+            strengthText.style.transform = "scale(1.1)";
+            setTimeout(() => strengthText.style.transform = "scale(1)", 200);
+
+            if (value >= 80) {
+                color = "#43a047";
+                textColor = "#43a047";
+            } else if (value >= 60) {
+                color = "#fbc02d";
+                textColor = "#fbc02d";
+            } else if (value >= 40) {
+                color = "#fb8c00";
+                textColor = "#fb8c00";
+            }
             strengthText.textContent = "Strength: " + strength;
-            progressBar.value = value; 
+            strengthText.style.color = textColor;
+            progressBar.style.width = value + "%";
+            progressBar.style.background = color;
+
+            if (strength === "Strong" || strength === "Very Strong") {
+                progressBar.classList.add("glow");
+                input.style.boxShadow = "0 0 12px 2px #43a047";
+            } else {
+                progressBar.classList.remove("glow");
+                input.style.boxShadow = "none";
+            }
+
+            if (strength === "Very Weak" || strength === "Weak") {
+                input.classList.add("shake");
+                setTimeout(() => input.classList.remove("shake"), 500);
+            }
         }
 
         function updateCharCount(password) {
@@ -134,7 +214,6 @@
 
         function updateCrackTime(password) {
             let crackTimeElem = document.getElementById("crackTime");
-            
             let charset = 0;
             if (/[a-z]/.test(password)) charset += 26;
             if (/[A-Z]/.test(password)) charset += 26;
@@ -163,13 +242,11 @@
             }
         }
 
-        // Show/hide password functionality
         document.getElementById("showPassword").addEventListener("change", function() {
             const pwdInput = document.getElementById("passwordInput");
             pwdInput.type = this.checked ? "text" : "password";
         });
 
-        // Live feedback for character types
         function updateContainsInfo(password) {
             let info = [];
             if (/[A-Z]/.test(password)) info.push("Uppercase");
@@ -180,7 +257,6 @@
                 "Contains: " + (info.length ? info.join(", ") : "None");
         }
 
-        // Update the event listener:
         document.getElementById("passwordInput").addEventListener("input", function() {
             let password = this.value;
             updateSuggestions(password);
@@ -190,7 +266,6 @@
             updateContainsInfo(password); 
         });
 
-        // Also call on page load:
         window.onload = () => {
             updateSuggestions("");
             updateStrength("");
